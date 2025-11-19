@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>The Sonic Architect</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Tailwind via CDN for quick styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: radial-gradient(circle at top, #0f172a, #020617 55%);
+      color: #e5e7eb;
+    }
+    textarea {
+      resize: vertical;
+    }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    #deepAnalysis h2 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-top: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+    #deepAnalysis p {
+      margin-bottom: 0.5rem;
+      line-height: 1.5;
+    }
+    #deepAnalysis ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-5xl mx-auto px-4 py-8">
+    <header class="mb-8">
+      <h1 class="text-3xl md:text-4xl font-semibold tracking-tight text-sky-200">
+        The Sonic Architect
+      </h1>
+      <p class="text-slate-300 mt-2 max-w-2xl">
+        Generate a concise tag string and a detailed Sonic Architecture brief for generative music AIs.
+      </p>
+      <p class="text-xs text-slate-500 mt-1">
+        Demo mode: short tags are fully accurate; deep analysis is mock text unless you plug in a real LLM backend.
+      </p>
+    </header>
+
+    <main class="grid gap-6 md:grid-cols-2">
+      <section class="space-y-4 bg-slate-900/60 border border-slate-700/70 rounded-2xl p-4 md:p-6 shadow-lg shadow-black/40">
+        <h2 class="text-lg font-semibold text-slate-100 mb-2">Inputs</h2>
+
+        <div class="space-y-1">
+          <label for="instrumentalReference" class="block text-sm font-medium text-slate-200">
+            Instrumental Reference
+          </label>
+          <p class="text-xs text-slate-400">
+            Used for the <span class="italic">"in the style of [Artist/Band]"</span> tag and instrumental focus.
+          </p>
+          <input
+            id="instrumentalReference"
+            type="text"
+            class="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+            placeholder="e.g. Daft Punk, Nine Inch Nails, Hans Zimmer"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label for="moodTextureTempo" class="block text-sm font-medium text-slate-200">
+            Mood / Texture / Tempo
+          </label>
+          <p class="text-xs text-slate-400">
+            Core musical descriptors: mood, texture, tempo, setting.
+          </p>
+          <textarea
+            id="moodTextureTempo"
+            rows="3"
+            class="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+            placeholder="e.g. dystopian, reverb-soaked, 140BPM, industrial, neon-lit cyberpunk city"
+          ></textarea>
+        </div>
+
+        <div class="space-y-1">
+          <label for="vocalDelivery" class="block text-sm font-medium text-slate-200">
+            General Vocal Delivery
+          </label>
+          <p class="text-xs text-slate-400">
+            Overall voice type and style.
+          </p>
+          <select
+            id="vocalDelivery"
+            class="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+          >
+            <option value="">Instrumental only / none</option>
+            <option value="Male Pop Singer">Male Pop Singer</option>
+            <option value="Female Pop Singer">Female Pop Singer</option>
+            <option value="Male Rock Vocal">Male Rock Vocal</option>
+            <option value="Female Rock Vocal">Female Rock Vocal</option>
+            <option value="Operatic Soprano">Operatic Soprano</option>
+            <option value="Baritone Crooner">Baritone Crooner</option>
+            <option value="Spoken Word">Spoken Word</option>
+            <option value="Choir / Choral">Choir / Choral</option>
+          </select>
+        </div>
+
+        <div class="space-y-1">
+          <label for="vocalistReference" class="block text-sm font-medium text-slate-200">
+            Vocalist Reference
+          </label>
+          <p class="text-xs text-slate-400">
+            Used for the <span class="italic">"in the style of [Vocalist]"</span> tag and vocal analysis.
+          </p>
+          <input
+            id="vocalistReference"
+            type="text"
+            class="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+            placeholder="e.g. The Weeknd, Björk, Freddie Mercury"
+          />
+        </div>
+
+        <div class="pt-2 flex flex-col gap-2">
+          <button
+            id="generateBtn"
+            class="inline-flex items-center justify-center rounded-lg bg-sky-500 hover:bg-sky-400 active:bg-sky-600 transition-colors px-4 py-2 text-sm font-semibold text-slate-900 shadow-md shadow-sky-500/30 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <span id="generateBtnText">Generate Sonic Prompt</span>
+            <svg id="loadingSpinner" class="ml-2 h-4 w-4 animate-spin hidden" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+          </button>
+          <p id="errorMsg" class="text-xs text-rose-400 hidden"></p>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <div class="bg-slate-900/60 border border-slate-700/70 rounded-2xl p-4 md:p-5 shadow-lg shadow-black/40">
+          <div class="flex items-center justify-between gap-3 mb-2">
+            <h2 class="text-sm font-semibold text-slate-100">
+              Short Tags (paste into Suno / Udio)
+            </h2>
+            <button
+              id="copyTagsBtn"
+              class="text-xs px-2 py-1 rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors"
+            >
+              Copy
+            </button>
+          </div>
+          <div
+            id="shortTagsOutput"
+            class="min-h-[3rem] text-xs md:text-sm mono bg-slate-950/70 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 break-words"
+          >
+            Waiting for input…
+          </div>
+        </div>
+
+        <div class="bg-slate-900/60 border border-slate-700/70 rounded-2xl p-4 md:p-5 shadow-lg shadow-black/40 h-full flex flex-col">
+          <div class="flex items-center justify-between gap-3 mb-2">
+            <h2 class="text-sm font-semibold text-slate-100">
+              Sonic Architecture (Deep Analysis)
+            </h2>
+            <button
+              id="copyAnalysisBtn"
+              class="text-xs px-2 py-1 rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors"
+            >
+              Copy
+            </button>
+          </div>
+          <div
+            id="deepAnalysis"
+            class="text-xs md:text-sm bg-slate-950/70 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 overflow-y-auto max-h-[26rem]"
+          >
+            The detailed Sonic Architecture will be generated here.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const USE_DEMO_MODE = true;
+    const BACKEND_URL = "https://your-backend.example.com/sonic-architect";
+
+    const instrumentalInput = document.getElementById("instrumentalReference");
+    const moodInput = document.getElementById("moodTextureTempo");
+    const vocalDeliveryInput = document.getElementById("vocalDelivery");
+    const vocalistInput = document.getElementById("vocalistReference");
+
+    const generateBtn = document.getElementById("generateBtn");
+    const generateBtnText = document.getElementById("generateBtnText");
+    const loadingSpinner = document.getElementById("loadingSpinner");
+    const errorMsg = document.getElementById("errorMsg");
+
+    const shortTagsOutput = document.getElementById("shortTagsOutput");
+    const deepAnalysisOutput = document.getElementById("deepAnalysis");
+
+    const copyTagsBtn = document.getElementById("copyTagsBtn");
+    const copyAnalysisBtn = document.getElementById("copyAnalysisBtn");
+
+    function setLoading(isLoading) {
+      generateBtn.disabled = isLoading;
+      loadingSpinner.classList.toggle("hidden", !isLoading);
+      generateBtnText.textContent = isLoading ? "Generating…" : "Generate Sonic Prompt";
+    }
+
+    function showError(message) {
+      errorMsg.textContent = message;
+      errorMsg.classList.remove("hidden");
+    }
+
+    function clearError() {
+      errorMsg.textContent = "";
+      errorMsg.classList.add("hidden");
+    }
+
+    function buildShortTags(mood, instrumentalRef, vocalDelivery, vocalistRef) {
+      const parts = [];
+
+      if (mood && mood.trim().length > 0) {
+        const tags = mood
+          .split(/[;,]/)
+          .map(t => t.trim())
+          .filter(t => t.length > 0);
+        if (tags.length > 0) {
+          parts.push(tags.join(", "));
+        }
+      }
+
+      if (instrumentalRef && instrumentalRef.trim().length > 0) {
+        parts.push("in the style of " + instrumentalRef.trim());
+      }
+
+      if (vocalDelivery && vocalDelivery.trim().length > 0) {
+        parts.push(vocalDelivery.trim());
+      }
+
+      if (vocalistRef && vocalistRef.trim().length > 0) {
+        parts.push("in the style of " + vocalistRef.trim());
+      }
+
+      let result = parts.join(", ");
+      if (result.length > 150) {
+        result = result.slice(0, 147) + "...";
+      }
+      return result || "Please add at least a mood or a reference, then click Generate.";
+    }
+
+    function buildDemoAnalysis({ instrumental_reference, mood_texture_tempo, vocal_delivery, vocalist_reference }) {
+      const instr = instrumental_reference || "no specific instrumental reference";
+      const mood = mood_texture_tempo || "your chosen mood and tempo";
+      const vocType = vocal_delivery || "no dedicated vocal; instrumental focus";
+      const vocRef = vocalist_reference ? ` with a flavour of ${vocalist_reference}` : "";
+
+      return (
+`## 1. The Instrumental Fusion
+
+This track is conceived as a fusion between ${instr} and the descriptive palette of ${mood}. Rather than copying any one song directly, the aim is to absorb the overall grammar of the reference: the way grooves develop, how harmony supports mood, and how space is carved out for hooks and transitions. The production should lean into the emotional colour implied by the descriptors, treating them as a guiding map for intensity, motion, and atmosphere.
+
+In practice, this means the harmonic language should be chosen to support tension and release that fits the described mood, while rhythm and groove are engineered to keep the piece moving forward even in more atmospheric passages. Think in terms of how the reference artist stacks layers, introduces motifs, and uses silence or minimal sections to reset the ear before a new section hits.
+
+## 2. Instrumentation & Timbre
+
+Instrumentation should be chosen to serve both the emotional content and the implied stylistic lineage. Start by defining a clear low-end anchor: a bass instrument or synth voice that provides both weight and a sense of motion. Above this, add a midrange bed – pads, guitars, keys, or processed textures – that can carry chords and evolving timbral movement. High-frequency material such as percussion details, shimmers, or melodic fragments should be introduced strategically to add clarity and air without becoming harsh.
+
+Timbre should be sculpted with saturation and ambience rather than relying on sheer loudness. Subtle drive on drums and bass can help the track feel cohesive, while contrasting reverb types – for example, a longer, more cinematic reverb on lead elements and tighter rooms on rhythm parts – will create depth. Stereo width should be carefully managed: keep critical low and low-mid information tighter in the centre and let higher, less critical elements spread out to create an enveloping field.
+
+## 3. Vocal Architecture
+
+The vocal architecture is built around a ${vocType}${vocRef}. The delivery should match the emotional DNA of the instrumental: phrasing that locks into the groove where needed, with enough elasticity to glide over sections that call for more openness or vulnerability. The core lead vocal should be treated as the primary hook-bearing element, so melodies should be designed with clear contour, repeatable motifs, and moments of contrast between verses and choruses.
+
+From a production standpoint, consider a layered approach: a clean, well-compressed central lead; gentle doubles or tightly aligned harmonies in choruses; and selective use of backing phrases or ad libs to emphasise key lines. Time-based effects such as tempo-synced delays can be used to create rhythmic interplay with the instrumental, while reverbs should complement the overall spatial design rather than obscuring diction. If the piece is intended to be more intimate, bias towards closer, drier vocals with subtle saturation; if it is more anthemic, increase room and plate components while preserving clarity.
+
+## 4. Structural Dynamics
+
+Structurally, the track should move through clear stages of energy: an intro that establishes tone and core textures, a first section that sets up groove and motif, a lift into a more fully realised chorus or peak, and at least one contrasting breakdown or bridge section that temporarily shifts perspective before the final return. Each section should feel related, but differentiated, by changes in density, register, and rhythmic emphasis.
+
+Dynamics should be shaped not only by level but by arrangement decisions: drop elements out to create negative space before major transitions; use filter sweeps, risers, or rhythmic stutters sparingly to signal upcoming changes; and allow the most hook-heavy section to benefit from the fullest arrangement. Automation on key parameters – reverb send levels, delay feedback, filter cutoff, and stereo width – can help the track breathe over time, giving the listener the sense of a living sonic environment rather than a static loop. The result is a coherent Sonic Architecture that a generative music system can approximate while still feeling intentional and human-guided.`
+      );
+    }
+
+    async function callBackend(payload) {
+      if (USE_DEMO_MODE) {
+        return {
+          short_tags: buildShortTags(
+            payload.mood_texture_tempo,
+            payload.instrumental_reference,
+            payload.vocal_delivery,
+            payload.vocalist_reference
+          ),
+          deep_analysis: buildDemoAnalysis(payload)
+        };
+      }
+
+      const response = await fetch(BACKEND_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error("Backend error: " + response.status + " " + response.statusText);
+      }
+
+      const data = await response.json();
+      return data;
+    }
+
+    generateBtn.addEventListener("click", async () => {
+      clearError();
+
+      const instrumental_reference = instrumentalInput.value.trim();
+      const mood_texture_tempo = moodInput.value.trim();
+      const vocal_delivery = vocalDeliveryInput.value.trim();
+      const vocalist_reference = vocalistInput.value.trim();
+
+      if (!mood_texture_tempo && !instrumental_reference && !vocalist_reference) {
+        showError("Please provide at least a mood/texture/tempo or an artist reference.");
+        return;
+      }
+
+      const payload = {
+        instrumental_reference,
+        mood_texture_tempo,
+        vocal_delivery,
+        vocalist_reference
+      };
+
+      try {
+        setLoading(true);
+        const result = await callBackend(payload);
+
+        shortTagsOutput.textContent = result.short_tags || "No short tags returned.";
+        deepAnalysisOutput.textContent = "";
+        renderMarkdownLike(result.deep_analysis || "No analysis returned.");
+      } catch (err) {
+        console.error(err);
+        showError("Something went wrong generating the Sonic Architecture.");
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    function renderMarkdownLike(markdown) {
+      const lines = markdown.split(/\r?\n/);
+      let html = "";
+      let buffer = [];
+
+      function flushParagraph() {
+        if (buffer.length) {
+          html += "<p>" + buffer.join(" ") + "</p>";
+          buffer = [];
+        }
+      }
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+
+        if (trimmed.startsWith("## ")) {
+          flushParagraph();
+          const heading = trimmed.replace(/^##\s*/, "");
+          html += "<h2>" + heading + "</h2>";
+        } else if (trimmed.length === 0) {
+          flushParagraph();
+        } else {
+          buffer.push(trimmed);
+        }
+      }
+      flushParagraph();
+
+      deepAnalysisOutput.innerHTML = html;
+    }
+
+    copyTagsBtn.addEventListener("click", async () => {
+      const text = shortTagsOutput.textContent || "";
+      if (!text || text.startsWith("Waiting for input")) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyTagsBtn.textContent = "Copied";
+        setTimeout(() => (copyTagsBtn.textContent = "Copy"), 1200);
+      } catch {
+        copyTagsBtn.textContent = "Error";
+        setTimeout(() => (copyTagsBtn.textContent = "Copy"), 1200);
+      }
+    });
+
+    copyAnalysisBtn.addEventListener("click", async () => {
+      const text = deepAnalysisOutput.textContent || "";
+      if (!text || text.startsWith("The detailed Sonic Architecture")) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyAnalysisBtn.textContent = "Copied";
+        setTimeout(() => (copyAnalysisBtn.textContent = "Copy"), 1200);
+      } catch {
+        copyAnalysisBtn.textContent = "Error";
+        setTimeout(() => (copyAnalysisBtn.textContent = "Copy"), 1200);
+      }
+    });
+  </script>
+</body>
+</html>
